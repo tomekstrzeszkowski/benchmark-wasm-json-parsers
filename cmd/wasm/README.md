@@ -14,6 +14,7 @@ Copy `wasm_exec.js` to `wasm/assets`. The file can be found in golang environmen
 Extra settings for VS Code:
 
 To `.vscode/settings.json` add this entry:
+
 ```
 {
     "go.toolsEnvVars": {
