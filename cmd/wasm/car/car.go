@@ -33,10 +33,7 @@ type Car struct {
 }
 
 func parseInt(value string) int {
-	re, err := regexp.Compile(`[^\d]`)
-	if err != nil {
-		return 0
-	}
+	re, _ := regexp.Compile(`[^\d]`)
 	replaced := re.ReplaceAllString(value, "")
 	v, _ := strconv.Atoi(replaced)
 	return v

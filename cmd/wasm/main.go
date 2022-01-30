@@ -5,7 +5,6 @@ import (
 
 	"github.com/TwiN/go-color"
 
-	"webassembly.com/web/animal"
 	"webassembly.com/web/car"
 )
 
@@ -14,7 +13,6 @@ func main() {
 	// fmt.Println(car.Name)
 	text := fmt.Sprintf("Hello%s webassembly!%s", color.Red, color.Reset)
 	fmt.Println(text)
-	animal.Main()
 	car.MakeCars()
 }
 

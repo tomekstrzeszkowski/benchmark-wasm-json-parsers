@@ -1,0 +1,7 @@
+jobs:
+  include:
+    - language: go
+      go: 1.17.6
+      before_script:
+        - cd cmd/wasm
+      go_import_path: webassembly.com/web
