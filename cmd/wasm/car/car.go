@@ -32,6 +32,7 @@ type Car struct {
 	Acceleration     Acceleration
 }
 
+// Get integer value from string.
 func parseInt(value string) int {
 	re, _ := regexp.Compile(`[^\d]`)
 	replaced := re.ReplaceAllString(value, "")
@@ -39,7 +40,7 @@ func parseInt(value string) int {
 	return v
 }
 
-// Unmarshal function for acceleration field type
+// Unmarshal function for acceleration field type.
 func (val *Acceleration) UnmarshalJSON(b []byte) error {
 	var s int
 	json.Unmarshal(b, &s)
@@ -53,16 +54,16 @@ func (val *Acceleration) UnmarshalJSON(b []byte) error {
 	return nil
 }
 
-// Unmarshal function for car origin field type
+// Unmarshal function for car origin field type.
 func (val *CarOrigin) UnmarshalJSON(b []byte) error {
 	var s string
 	json.Unmarshal(b, &s)
-	origin := CarOrigin(s + "FF")
+	origin := CarOrigin("Country: " + s)
 	*val = origin
 	return nil
 }
 
-// Unmarshal function for year field type
+// Unmarshal function for year field type.
 func (val *CarDate) UnmarshalJSON(b []byte) error {
 	var unparsed string
 	json.Unmarshal(b, &unparsed)
@@ -72,10 +73,10 @@ func (val *CarDate) UnmarshalJSON(b []byte) error {
 	return nil
 }
 
-//Unmarshal function for displacement.
-//The type of values for this field might be an quoted and unquoted number.
-//This function parses bytes into string and then parses it into int value,
-//If this operiation is successful the result will be assigned into the given field.
+// Unmarshal function for displacement.
+// The type of values for this field might be an quoted and unquoted number.
+// This function parses bytes into string and then parses it into int value,
+// If this operiation is successful the result will be assigned into the given field.
 func (val *Displacement) UnmarshalJSON(b []byte) error {
 	cleanValue := strings.Replace(string(b), "\"", "", 2)
 	parsedInt, err := strconv.ParseInt(cleanValue, 10, 64)
@@ -86,8 +87,9 @@ func (val *Displacement) UnmarshalJSON(b []byte) error {
 	return nil
 }
 
-func ReadContent() []byte {
-	file, fileError := os.Open("/home/t/Desktop/wasm/assets/cars.json")
+// Read file conent by given path.
+func ReadContent(path string) []byte {
+	file, fileError := os.Open(path)
 	if fileError != nil {
 		fmt.Println(fileError)
 	} else {
@@ -98,16 +100,18 @@ func ReadContent() []byte {
 	return content
 }
 
+// Parse conent JSON content.
 func parseContent(content []byte) []Car {
 	var cars []Car
 	err := json.Unmarshal(content, &cars)
 	if err != nil {
-		fmt.Println(err)
+		//TODO: log error
+		return cars
 	}
 	return cars
 }
 
-//Sort by year, horsepower and name respectively
+// Sort by year, horsepower and name respectively.
 func sortContent(cars *[]Car) {
 	sort.SliceStable(*cars, func(i, j int) bool {
 		item1, item2 := &(*cars)[i], &(*cars)[j]
@@ -121,24 +125,27 @@ func sortContent(cars *[]Car) {
 	})
 }
 
-func MakeCars() {
-	content := ReadContent()
+// Create struct, format field values, parse them into specific
+// types and sort them.
+func makeCars(content []byte) *[]Car {
 	cars := parseContent(content)
 	sortContent(&cars)
-
-	for _, car := range cars {
-		fmt.Println(
-			"Cylinders", car.Cylinders,
-			"Name", car.Name,
-			"Displacement", car.Displacement,
-			"Weight_in_lbs", car.Weight_in_lbs,
-			"Horsepower", car.Horsepower,
-			"Origin", car.Origin,
-			"acc", car.Acceleration,
-			"Miles_per_Gallon", car.Miles_per_Gallon,
-			"Year", car.Year,
-		)
-	}
+	return &cars
 }
 
-//TODO add tests :)
+// Parse items from given path.
+func ParseFromFile(path string) *[]Car {
+	content := ReadContent(path)
+	cars := makeCars(content)
+	return cars
+}
+
+// Parse json data given as a string.
+func ParseJSON(jsonData string) string {
+	cars := makeCars([]byte(jsonData))
+	jsonCars, err := json.Marshal(cars)
+	if err != nil {
+		return ""
+	}
+	return string(jsonCars)
+}

@@ -10,3 +10,15 @@ Copy `wasm_exec.js` to `wasm/assets`. The file can be found in golang environmen
 ~⚙ ls ~/go/misc/wasm/*.js
 /home/t/go/misc/wasm/wasm_exec.js
 ```
+
+Extra settings for VS Code:
+
+To `.vscode/settings.json` add this entry:
+```
+{
+    "go.toolsEnvVars": {
+        "GOOS": "js",
+        "GOARCH": "wasm"
+    }
+}
+```
