@@ -47,3 +47,7 @@ Now run the server:
 `cd cmd/server`
 
 `./server`
+
+### Screenshot
+
+![image](https://user-images.githubusercontent.com/40120335/152691314-9325925c-e6b3-4f11-ba39-002c9150571b.png)
