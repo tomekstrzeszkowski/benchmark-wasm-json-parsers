@@ -2,8 +2,9 @@ package car
 
 import (
 	"encoding/json"
-	"fmt"
+	"errors"
 	"io/ioutil"
+	"log"
 	"os"
 	"regexp"
 	"sort"
@@ -12,14 +13,20 @@ import (
 	"time"
 )
 
+// Custom vehicle types.
 type CarOrigin string
 type Acceleration int
 type Displacement uint16
 
+// Date struct that is used in car struct.
 type CarDate struct {
 	time.Time
 }
 
+// Car struct has field names and types relevant to JSON data,
+// however, not every field can be mapped using `json.Unmarshal` method,
+// therefore some fields have custom type, struct or/and method for parsing it.
+// This structure standardizes non-standardized JSON input.
 type Car struct {
 	Name             string  `json:",omitempty"`
 	Miles_per_Gallon float64 `json:",omitempty"`
@@ -75,7 +82,7 @@ func (val *CarDate) UnmarshalJSON(b []byte) error {
 
 // Unmarshal function for displacement.
 // The type of values for this field might be an quoted and unquoted number.
-// This function parses bytes into string and then parses it into int value,
+// This function parses bytes into string and then continue parsing into int value,
 // If this operiation is successful the result will be assigned into the given field.
 func (val *Displacement) UnmarshalJSON(b []byte) error {
 	cleanValue := strings.Replace(string(b), "\"", "", 2)
@@ -88,16 +95,17 @@ func (val *Displacement) UnmarshalJSON(b []byte) error {
 }
 
 // Read file conent by given path.
-func ReadContent(path string) []byte {
+func ReadContent(path string) ([]byte, error) {
 	file, fileError := os.Open(path)
 	if fileError != nil {
-		fmt.Println(fileError)
+		log.Print("Unable to open file")
+		return nil, errors.New("FileNotAccessible")
 	} else {
 		defer file.Close()
 	}
 	content, _ := ioutil.ReadAll(file)
 
-	return content
+	return content, nil
 }
 
 // Parse conent JSON content.
@@ -105,7 +113,7 @@ func parseContent(content []byte) []Car {
 	var cars []Car
 	err := json.Unmarshal(content, &cars)
 	if err != nil {
-		//TODO: log error
+		log.Printf("Parsing content error %v", err)
 		return cars
 	}
 	return cars
@@ -135,7 +143,10 @@ func makeCars(content []byte) *[]Car {
 
 // Parse items from given path.
 func ParseFromFile(path string) *[]Car {
-	content := ReadContent(path)
+	content, err := ReadContent(path)
+	if err != nil {
+		return nil
+	}
 	cars := makeCars(content)
 	return cars
 }
@@ -145,6 +156,7 @@ func ParseJSON(jsonData string) string {
 	cars := makeCars([]byte(jsonData))
 	jsonCars, err := json.Marshal(cars)
 	if err != nil {
+		log.Printf("Marshal error (empty string) %v", err)
 		return ""
 	}
 	return string(jsonCars)

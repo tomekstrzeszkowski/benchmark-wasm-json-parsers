@@ -10,6 +10,7 @@ import (
 	"webassembly.com/web/car"
 )
 
+// This function shall be accessible from javascript.
 func goParseJson(this js.Value, args []js.Value) interface{} {
 	return car.ParseJSON(args[0].String())
 }
