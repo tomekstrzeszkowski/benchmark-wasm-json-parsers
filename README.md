@@ -1,13 +1,13 @@
 # enigma-stats
 
-## installation
+## 🚴 installation
 
 This project requires environmnents for: 
  - Go
  - Rust
  - nodejs/yarn
 
-### server installation
+### 🚴  server installation
 This project uses simple Go based server. It serves static files located in `assets`.
 In order to run this server follow instructions below.
 Go to the location
@@ -18,7 +18,7 @@ And run
 
 `go build`
  
-### frontend installation
+### 🚴  frontend installation
 
 Go to the (you can use --cwd as well)
 
@@ -29,7 +29,7 @@ And run installation
 `yarn`
 
 
-### Go wasm app installation
+### 🚴  Go wasm app installation
 
 Go to the location
 
@@ -37,7 +37,7 @@ Go to the location
 
 And follow the installation chapter in the [README.md](cmd/wasm-go/README.md) file 
 
-### Rust wasm app installation
+### 🚴  Rust wasm app installation
 
 Go to the location
 
@@ -45,7 +45,7 @@ Go to the location
 
 And follow the installation chapter in the [README.md](cmd/wasm-rust/README.md) file 
 
-## Running project
+## 🛠️ Running project
 
 Build frontend app using this command:
 
