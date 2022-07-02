@@ -6,6 +6,9 @@ module.exports = {
     path: path.resolve(__dirname, '../../../assets/dist'),
     filename: 'bundle.js'
   },
+  experiments: {
+    asyncWebAssembly: true,
+  },
   module: {
     rules: [
       {

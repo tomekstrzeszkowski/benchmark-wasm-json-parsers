@@ -4,7 +4,19 @@
 
 This project requires environmnents for: 
  - Go
+ - Rust
  - nodejs/yarn
+
+### server installation
+This project uses simple Go based server. It serves static files located in `assets`.
+In order to run this server follow instructions below.
+Go to the location
+
+`cd cmd/server/`
+
+And run
+
+`go build`
  
 ### frontend installation
 
@@ -16,21 +28,20 @@ And run installation
 
 `yarn`
 
-### server installation
 
-Go to the location
-
-`cd cmd/server/`
-
-And run
-
-`go build`
-
-### go wasm app installation
+### Go wasm app installation
 
 Go to the location
 
 `cd cmd/wasm`
+
+And follow the installation chapter in the README.md file 
+
+### Rust wasm app installation
+
+Go to the location
+
+`cd cmd/wasm-rust`
 
 And follow the installation chapter in the README.md file 
 

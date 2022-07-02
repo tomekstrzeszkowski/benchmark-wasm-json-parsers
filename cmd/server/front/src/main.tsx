@@ -3,6 +3,7 @@ import React, {Component} from 'react';
 import * as ReactDOM from 'react-dom'
 import TextareaAutosize from '@material-ui/core/TextareaAutosize';
 import Button from '@material-ui/core/Button';
+import * as wasmRust from "wasm-rust";
 
 declare global {
     interface Window {
@@ -16,7 +17,8 @@ class App extends Component<{}, { value: string, result: number, parsed: string 
     this.state = {value: "", result: 0, parsed: ""};
 
     this.handleChange = this.handleChange.bind(this);
-    this.handleTimeIt = this.handleTimeIt.bind(this);
+    this.handleTimeItGo = this.handleTimeItGo.bind(this);
+    this.handleTimeItRust = this.handleTimeItRust.bind(this);
     this.loadServerData = this.loadServerData.bind(this);
     this.loadBrowserData = this.loadBrowserData.bind(this);
     this.loadBrowserData();
@@ -40,7 +42,7 @@ class App extends Component<{}, { value: string, result: number, parsed: string 
     this.setState({value: event.target.value});
   }
 
-  handleTimeIt(event: any) {
+  handleTimeItGo(event: any) {
     const start = performance.now();
     const parsed: string = window.parseJson(this.state.value);
     const end = performance.now();
@@ -48,13 +50,17 @@ class App extends Component<{}, { value: string, result: number, parsed: string 
     this.setState({result: duration, parsed: parsed});
     event.preventDefault();
   }
+  handleTimeItRust() {
+    wasmRust.greet();
+  }
 
   render(){
     return (
       <div style={{ display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
         <div style={{ display: 'flex', justifyContent: 'space-evenly' }}>
           <div>
-            <Button onClick={this.handleTimeIt} variant="contained">Time It!</Button>
+            <Button onClick={this.handleTimeItGo} variant="contained">Time It GO-lang!</Button>
+            <Button onClick={this.handleTimeItRust} variant="contained">Time It Rust!</Button>
           </div>
           <div style={{ display: 'flex', justifyContent: 'left' }}>
             <Button onClick={this.loadBrowserData} variant="contained" color="secondary">load browser data</Button>
