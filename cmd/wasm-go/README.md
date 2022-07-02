@@ -9,10 +9,6 @@ Build to wasm file:
 
 `GOOS=js GOARCH=wasm go build -o ../../assets/json.wasm`
 
-Installation:
-
-Copy `wasm_exec.js` to `wasm/assets`. 
-
 ## Prelude
 This Go integration uses `wasm_exec.js` file.
 The file can be found in golang environment. In my case it was:
