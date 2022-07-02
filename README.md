@@ -33,9 +33,9 @@ And run installation
 
 Go to the location
 
-`cd cmd/wasm`
+`cd cmd/wasm-go`
 
-And follow the installation chapter in the README.md file 
+And follow the installation chapter in the [README.md](cmd/wasm-go/README.md) file 
 
 ### Rust wasm app installation
 
@@ -43,7 +43,7 @@ Go to the location
 
 `cd cmd/wasm-rust`
 
-And follow the installation chapter in the README.md file 
+And follow the installation chapter in the [README.md](cmd/wasm-rust/README.md) file 
 
 ## Running project
 
