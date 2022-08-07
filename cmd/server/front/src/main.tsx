@@ -51,7 +51,7 @@ class App extends Component<{}, { value: string, result: number, parsed: string 
     event.preventDefault();
   }
   handleTimeItRust() {
-    wasmRust.greet();
+    wasmRust.greets();
   }
 
   render(){
