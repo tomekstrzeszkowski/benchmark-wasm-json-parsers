@@ -1,14 +1,63 @@
-use chrono::{Date, Utc, TimeZone};
+use std::io::Error;
+use serde_json::Value;
+use std::fs::read_to_string;
+use chrono::{Date, Utc, TimeZone, NaiveDate};
 use std::cmp::Ordering;
+use serde::{Deserialize, Deserializer, de};
+use regex::Regex;
 
+fn year_deserialize<'de, D>(deserializer: D) -> Result<Option<Date<Utc>>, D::Error>
+where
+    D: Deserializer<'de>,
+{
+    let date_str: String = Deserialize::deserialize(deserializer)?;
+    let date = NaiveDate::parse_from_str(&date_str[..], "%Y-%m-%d").unwrap();
+    return Ok(Some(Date::<Utc>::from_utc(date, Utc)));
+}
+
+fn acceleration_deserialize<'de, D>(deserializer: D) -> Result<i64, D::Error>
+where
+    D: Deserializer<'de>,
+{
+    let acc_value: Value = Deserialize::deserialize(deserializer)?;
+    let acc_str: String = match acc_value.as_str() {
+        Some(val) => String::from(val),
+        None => {
+            match acc_value.as_f64() {
+                Some(val) => return Ok(val as i64),
+                None => {
+                    return Ok(acc_value.as_i64().unwrap());
+                },
+            };
+        },
+    };
+    let re = Regex::new(r"[^\d]").unwrap();
+    let safe_str = re.replace_all(&acc_str[..], "");
+    let parsed = safe_str.parse::<i64>().unwrap();
+    return Ok(parsed);
+}
+
+#[derive(Deserialize, Debug)]
+#[serde(rename_all = "lowercase")]
 pub struct Car {
+    #[serde(rename(deserialize = "Name"))]
     pub name: String,
+    #[serde(rename(deserialize = "Miles_per_Gallon"))]
     pub miles_per_galon: f64,
-    pub displacement: Option<u16>,
+    #[serde(rename(deserialize = "Displacement"))]
+    pub displacement: Option<String>,
+    #[serde(rename(deserialize = "Horsepower"))]
     pub horsepower: u8,
+    #[serde(rename(deserialize = "Weight_in_lbs"))]
     pub weight_in_lbs: u16,
+    #[serde(rename(deserialize = "Cylinders"))]
     pub cylinders: i32,
-    pub year: Date<Utc>,
+    #[serde(default)]
+    #[serde(deserialize_with = "year_deserialize")]
+    #[serde(rename(deserialize = "Year"))]
+    pub year: Option<Date<Utc>>,
+    #[serde(rename(deserialize = "Acceleration"))]
+    #[serde(deserialize_with = "acceleration_deserialize")]
     pub acceleration: i64,
 }
 
@@ -45,31 +94,30 @@ impl PartialEq for Car {
     }
 }
 
-impl Eq for Car {
-    
-}
+impl Eq for Car {}
 
 /// Read file content by given path
-fn read_content(path: &str) {
-    todo!();
+fn read_content(path: &str) -> String {
+    read_to_string(path).expect("unable to read the file")
 }
 
 /// Parse JSON content
-pub fn parse_content(content: &str) -> &[Car] {
-    todo!()
+pub fn parse_content(content: &str) -> Result<Vec<Car>, Error> {
+    let cars: Vec<Car> = serde_json::from_str(content)?;
+    Ok(cars)
 }
 
 /// Sort by year, horsepower and name respectively
-fn sort_content(cars: &mut [Car]) {
+fn sort_content(cars: &mut Vec<Car>) {
     cars.sort();
 }
 
 /// Create struct, format fields' values, parse them into specific
 /// types and sort.
-fn make_cars(content: &str) -> &[Car] {
-    let cars = parse_content(&content);
-    //sort_content(&cars);
-    return &cars;
+fn make_cars(content: &String) -> Vec<Car> {
+    let mut cars = parse_content(&content).unwrap();
+    sort_content(&mut cars);
+    return cars;
 }
 
 /// Parse items from given path
@@ -86,6 +134,20 @@ pub fn parse_json(content: &str) -> String {
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn test_parse_content() {
+        let json_str = read_content("src/testdata/cars-tiny.json");
+        let parsed = parse_content(&json_str).unwrap();
+        assert_eq!(parsed[0].acceleration, 2);
+        assert_eq!(parsed[1].acceleration, 12);
+        assert_eq!(parsed[2].acceleration, 18);
+    }
+    #[test]
+    fn reading_file() {
+        let file_content = read_content("src/testdata/cars.json");
+        assert_eq!(file_content.len(), 101399);
+    }
     #[test]
     fn car_can_be_created() {
         let car = Car{
@@ -95,7 +157,7 @@ mod tests {
             horsepower: 140,
             weight_in_lbs: 1900,
             cylinders: 4,
-            year: Utc.ymd(1970, 1, 1),
+            year: Some(Utc.ymd(1970, 1, 1)),
             acceleration: 100,
         };
         assert_eq!(car.cylinders, 4);
@@ -109,7 +171,7 @@ mod tests {
             horsepower: 140,
             weight_in_lbs: 1900,
             cylinders: 4,
-            year: Utc.ymd(1990, 1, 1),
+            year: Some(Utc.ymd(1990, 1, 1)),
             acceleration: 100,
         };
         let car2 = Car{
@@ -119,7 +181,7 @@ mod tests {
             horsepower: 110,
             weight_in_lbs: 1900,
             cylinders: 4,
-            year: Utc.ymd(1970, 1, 1),
+            year: Some(Utc.ymd(1970, 1, 1)),
             acceleration: 100,
         };
         let car3 = Car{
@@ -129,7 +191,7 @@ mod tests {
             horsepower: 100,
             weight_in_lbs: 1900,
             cylinders: 4,
-            year: Utc.ymd(1970, 1, 1),
+            year: Some(Utc.ymd(1970, 1, 1)),
             acceleration: 100,
         };        
         let car4 = Car{
@@ -139,7 +201,7 @@ mod tests {
             horsepower: 110,
             weight_in_lbs: 1900,
             cylinders: 4,
-            year: Utc.ymd(1970, 1, 1),
+            year: Some(Utc.ymd(1970, 1, 1)),
             acceleration: 100,
         };
         let mut cars = vec![car1, car2, car3, car4];
@@ -151,6 +213,5 @@ mod tests {
         assert_eq!(cars[1].name, "Acura");
         assert_eq!(cars[2].name, "Bentley");
         assert_eq!(cars[3].name, "Honda");
-
     }
 }
