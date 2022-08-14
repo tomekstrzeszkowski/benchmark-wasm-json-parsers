@@ -1,5 +1,6 @@
 mod utils;
 mod car;
+use serde_json::de::StrRead;
 use wasm_bindgen::prelude::*;
 use chrono::{Utc, TimeZone};
 
@@ -23,7 +24,7 @@ pub fn greets() {
         horsepower: 140,
         weight_in_lbs: 1900,
         cylinders: 4,
-        year: Utc.ymd(1970, 1, 1),
+        year: Some(Utc.ymd(1970, 1, 1)),
         acceleration: 100,
     };
     let label = &format!("Work in progress, wasm-rust {}!", car.name);

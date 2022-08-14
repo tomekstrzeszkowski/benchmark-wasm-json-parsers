@@ -6,61 +6,126 @@ use std::cmp::Ordering;
 use serde::{Deserialize, Deserializer, de};
 use regex::Regex;
 
-fn year_deserialize<'de, D>(deserializer: D) -> Result<Option<Date<Utc>>, D::Error>
-where
-    D: Deserializer<'de>,
-{
-    let date_str: String = Deserialize::deserialize(deserializer)?;
-    let date = NaiveDate::parse_from_str(&date_str[..], "%Y-%m-%d").unwrap();
-    return Ok(Some(Date::<Utc>::from_utc(date, Utc)));
+mod deserialize {
+    use serde_json::Value;
+    use chrono::{Date, Utc, TimeZone, NaiveDate};
+    use serde::{Deserialize, Deserializer};
+    use regex::Regex;
+
+    pub fn year_deserialize<'de, D>(deserializer: D) -> Result<Option<Date<Utc>>, D::Error>
+    where
+        D: Deserializer<'de>,
+    {
+        let date_str: String = Deserialize::deserialize(deserializer)?;
+        let date = NaiveDate::parse_from_str(&date_str[..], "%Y-%m-%d").unwrap();
+        return Ok(Some(Date::<Utc>::from_utc(date, Utc)));
+    }
+
+    pub fn horsepower_deserialize<'de, D>(deserializer: D) -> Result<u8, D::Error>
+    where
+        D: Deserializer<'de>,
+    {
+        let value: Option<u8> = Deserialize::deserialize(deserializer)?;
+        match value {
+            Some(value) => return Ok(value),
+            None => return Ok(0),
+        }
+    }
+    
+    pub fn miles_per_gallon_deserialize<'de, D>(deserializer: D) -> Result<f64, D::Error>
+    where
+        D: Deserializer<'de>,
+    {
+        let value: Option<f64> = Deserialize::deserialize(deserializer)?;
+        match value {
+            Some(value) => return Ok(value),
+            None => return Ok(0.0),
+        }
+    }
+    
+    pub fn displacement_deserialize<'de, D>(deserializer: D) -> Result<Option<String>, D::Error>
+    where
+        D: Deserializer<'de>,
+    {
+        let value: Value = Deserialize::deserialize(deserializer)?;
+        match value.as_str() {
+            Some(value) => return Ok(Some(String::from(value))),
+            None => {return Ok(None)},
+        }
+    }
+    pub fn acceleration_deserialize<'de, D>(deserializer: D) -> Result<i64, D::Error>
+    where
+        D: Deserializer<'de>,
+    {
+        let acc_value: Value = Deserialize::deserialize(deserializer)?;
+        let acc_str: String = match acc_value.as_str() {
+            Some(val) => String::from(val),
+            None => {
+                match acc_value.as_f64() {
+                    Some(val) => return Ok(val as i64),
+                    None => {
+                        return Ok(acc_value.as_i64().unwrap());
+                    },
+                };
+            },
+        };
+        let re = Regex::new(r"[^\d]").unwrap();
+        let safe_str = re.replace_all(&acc_str[..], "");
+        let parsed = safe_str.parse::<i64>().unwrap();
+        return Ok(parsed);
+    }
 }
 
-fn acceleration_deserialize<'de, D>(deserializer: D) -> Result<i64, D::Error>
-where
-    D: Deserializer<'de>,
-{
-    let acc_value: Value = Deserialize::deserialize(deserializer)?;
-    let acc_str: String = match acc_value.as_str() {
-        Some(val) => String::from(val),
-        None => {
-            match acc_value.as_f64() {
-                Some(val) => return Ok(val as i64),
-                None => {
-                    return Ok(acc_value.as_i64().unwrap());
-                },
-            };
-        },
-    };
-    let re = Regex::new(r"[^\d]").unwrap();
-    let safe_str = re.replace_all(&acc_str[..], "");
-    let parsed = safe_str.parse::<i64>().unwrap();
-    return Ok(parsed);
+mod default_values {
+    pub fn horsepower() -> u8 {
+        0
+    }
+    pub fn cylinders() -> i32 {
+        0
+    }
+    pub fn miles_per_gallon() -> f64 {
+        0.0
+    }
+    pub fn displacement() -> Option<String> {
+        None
+    }
+    pub fn acceleration() -> i64 {
+        0
+    }
 }
 
 #[derive(Deserialize, Debug)]
-#[serde(rename_all = "lowercase")]
 pub struct Car {
+    #[serde(default)]
     #[serde(rename(deserialize = "Name"))]
     pub name: String,
+    #[serde(default="default_values::miles_per_gallon")]
+    #[serde(deserialize_with = "deserialize::miles_per_gallon_deserialize")]
     #[serde(rename(deserialize = "Miles_per_Gallon"))]
     pub miles_per_galon: f64,
+    #[serde(default="default_values::displacement")]
+    #[serde(deserialize_with = "deserialize::displacement_deserialize")]
     #[serde(rename(deserialize = "Displacement"))]
     pub displacement: Option<String>,
+    #[serde(default="default_values::horsepower")]
+    #[serde(deserialize_with = "deserialize::horsepower_deserialize")]
     #[serde(rename(deserialize = "Horsepower"))]
     pub horsepower: u8,
+    #[serde(default)]
     #[serde(rename(deserialize = "Weight_in_lbs"))]
     pub weight_in_lbs: u16,
+    #[serde(default="default_values::cylinders")]
     #[serde(rename(deserialize = "Cylinders"))]
     pub cylinders: i32,
     #[serde(default)]
-    #[serde(deserialize_with = "year_deserialize")]
+    #[serde(deserialize_with = "deserialize::year_deserialize")]
     #[serde(rename(deserialize = "Year"))]
     pub year: Option<Date<Utc>>,
+    #[serde(default="default_values::acceleration")]
+    #[serde(deserialize_with = "deserialize::acceleration_deserialize")]
     #[serde(rename(deserialize = "Acceleration"))]
-    #[serde(deserialize_with = "acceleration_deserialize")]
     pub acceleration: i64,
 }
-
 impl Car {
     fn is_less(&self, other: &Self) -> bool {
         if self.year == other.year {
@@ -112,17 +177,27 @@ fn sort_content(cars: &mut Vec<Car>) {
     cars.sort();
 }
 
+/// Filter invalid data
+fn filter_invalid_cars(cars: &mut Vec<Car>) {
+    // cars.retain(|car| {
+    //     !car.name.is_empty()
+    // });
+}
+
 /// Create struct, format fields' values, parse them into specific
 /// types and sort.
-fn make_cars(content: &String) -> Vec<Car> {
+fn make_cars(content: &str) -> Vec<Car> {
     let mut cars = parse_content(&content).unwrap();
+    filter_invalid_cars(&mut cars);
     sort_content(&mut cars);
     return cars;
 }
 
 /// Parse items from given path
-fn parse_from_file(path: &str) -> &[Car] {
-    todo!()
+fn parse_from_file(path: &str) -> Vec<Car> {
+    let json_str = read_content(path);
+    let cars = make_cars(&json_str);
+    return cars;
 }
 
 /// Parse JSON content to Car instances
@@ -134,6 +209,53 @@ pub fn parse_json(content: &str) -> String {
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn test_parse_from_file() {
+        let cars = parse_from_file("src/testdata/cars.json");
+        assert_eq!(cars.len(), 405);
+    }
+
+    #[test]
+    fn test_make_cars() {
+        let content = r#"
+        [
+            {
+                "Name":"",
+                "Miles_per_Gallon":18,
+                "Cylinders":8,
+                "Displacement":"307",
+                "Horsepower":130,
+                "Weight_in_lbs":3504,
+                "Acceleration":"-]2-",
+                "Year":"1970-01-01",
+                "Origin":"USA"
+            },
+            {
+                "Name":"amc rebel sst",
+                "Miles_per_Gallon":16,
+                "Cylinders":8,
+                "Displacement":"304",
+                "Horsepower":150,
+                "Weight_in_lbs":3433,
+                "Acceleration":12,
+                "Origin":"USA"
+            },
+            {
+                "Name":"amc rebel sst",
+                "Miles_per_Gallon":16,
+                "Cylinders":8,
+                "Displacement":"304",
+                "Horsepower":150,
+                "Weight_in_lbs":3433,
+                "Acceleration":18.8,
+                "Origin":"USA"
+            }
+        ]"#;
+        let content = content;
+        let cars = make_cars(&content);
+        assert_eq!(cars.len(), 2);
+    }
 
     #[test]
     fn test_parse_content() {
