@@ -75,11 +75,8 @@ mod deserialize {
 }
 
 mod serialize {
-    use std::io::Error;
-    use std::fs::read_to_string;
-    use chrono::{Date, Utc, TimeZone};
-    use std::cmp::Ordering;
-    use serde::{Deserialize, Serialize, Serializer};
+    use chrono::{Date, Utc};
+    use serde::{Serializer};
 
     const FORMAT: &'static str = "%Y-%m-%d";
 
@@ -201,18 +198,10 @@ fn sort_content(cars: &mut Vec<Car>) {
     cars.sort();
 }
 
-/// Filter invalid data
-fn filter_invalid_cars(cars: &mut Vec<Car>) {
-    cars.retain(|car| {
-        !car.name.is_empty()
-    });
-}
-
 /// Create struct, format fields' values, parse them into specific
 /// types and sort.
 fn make_cars(content: &str) -> Vec<Car> {
     let mut cars = parse_content(&content).unwrap();
-    filter_invalid_cars(&mut cars);
     sort_content(&mut cars);
     return cars;
 }
@@ -226,8 +215,8 @@ fn parse_from_file(path: &str) -> Vec<Car> {
 
 /// Parse JSON content to Car instances
 pub fn parse_json(content: &str) -> String {
-   let cars = make_cars(&content);
-   serde_json::to_string(&cars).unwrap()
+    let cars = make_cars(&content);
+    serde_json::to_string(&cars).unwrap()
 }
 
 
@@ -276,7 +265,7 @@ mod tests {
     #[test]
     fn test_parse_from_file() {
         let cars = parse_from_file("src/testdata/cars.json");
-        assert_eq!(cars.len(), 405);
+        assert_eq!(cars.len(), 406);
     }
 
     #[test]
@@ -317,7 +306,7 @@ mod tests {
         ]"#;
         let content = content;
         let cars = make_cars(&content);
-        assert_eq!(cars.len(), 2);
+        assert_eq!(cars.len(), 3);
     }
 
     #[test]

@@ -42,12 +42,16 @@ class App extends Component<{}, { value: string, result: number, parsed: string 
     this.setState({value: event.target.value});
   }
 
+  formatResults(results: string) {
+    return JSON.stringify(JSON.parse(results), undefined, 2);
+  }
+
   handleTimeItGo(event: any) {
     const start = performance.now();
     const parsed: string = window.parseJson(this.state.value);
     const end = performance.now();
     const duration = end - start;
-    this.setState({result: duration, parsed: parsed});
+    this.setState({result: duration, parsed: this.formatResults(parsed)});
     event.preventDefault();
   }
   handleTimeItRust(event: any) {
@@ -55,7 +59,7 @@ class App extends Component<{}, { value: string, result: number, parsed: string 
     const parsed: string = wasmRust.rust_parse_json(this.state.value);
     const end = performance.now();
     const duration = end - start;
-    this.setState({result: duration, parsed: parsed});
+    this.setState({result: duration, parsed: this.formatResults(parsed)});
     event.preventDefault();
   }
 
@@ -86,7 +90,7 @@ class App extends Component<{}, { value: string, result: number, parsed: string 
         { this.state.result ? (
           <div style={{ display: 'flex', justifyContent: 'center' }}>
            <label>Parsed result:</label>
-           <code>{this.state.parsed}</code>
+           <pre id="json">{this.state.parsed}</pre>
           </div>
           ): <div></div>
         }
