@@ -1,4 +1,4 @@
-# enigma-stats
+# Web assembly JSON parsers benchmark
 
 Simple web-assembly benchmark based on custom JSON-parsers. The motivation for this project is to integrate web-assembly and present benchmark results in readable form of web application. Test data are completly custom, and they can be provided by input directly from a browser, or pre-defined test data can be used as an option.
 
