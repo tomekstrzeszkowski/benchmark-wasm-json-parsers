@@ -2,7 +2,7 @@ use std::io::Error;
 use std::fs::read_to_string;
 use chrono::{Date, Utc, TimeZone};
 use std::cmp::Ordering;
-use serde::{Deserialize};
+use serde::{Deserialize, Serialize};
 
 mod deserialize {
     use serde_json::Value;
@@ -74,6 +74,31 @@ mod deserialize {
     }
 }
 
+mod serialize {
+    use std::io::Error;
+    use std::fs::read_to_string;
+    use chrono::{Date, Utc, TimeZone};
+    use std::cmp::Ordering;
+    use serde::{Deserialize, Serialize, Serializer};
+
+    const FORMAT: &'static str = "%Y-%m-%d";
+
+    pub fn year_serialize<S>(
+        year: &Option<Date<Utc>>, 
+        serializer: S
+    ) -> Result<S::Ok, S::Error> 
+    where
+        S: Serializer {
+        match year {
+            Some(year) => {
+                let formatted = format!("{}", year.format(FORMAT));
+                serializer.serialize_str(&formatted)
+            },
+            _ => serializer.serialize_none(),
+        }
+    }
+}
+
 mod default_values {
     pub fn horsepower() -> u8 {
         0
@@ -92,7 +117,7 @@ mod default_values {
     }
 }
 
-#[derive(Deserialize, Debug)]
+#[derive(Deserialize, Serialize, Debug)]
 pub struct Car {
     #[serde(default)]
     #[serde(rename(deserialize = "Name"))]
@@ -116,7 +141,7 @@ pub struct Car {
     #[serde(rename(deserialize = "Cylinders"))]
     pub cylinders: i32,
     #[serde(default)]
-    #[serde(deserialize_with = "deserialize::year_deserialize")]
+    #[serde(deserialize_with = "deserialize::year_deserialize", serialize_with="serialize::year_serialize")]
     #[serde(rename(deserialize = "Year"))]
     pub year: Option<Date<Utc>>,
     #[serde(default="default_values::acceleration")]
@@ -124,6 +149,7 @@ pub struct Car {
     #[serde(rename(deserialize = "Acceleration"))]
     pub acceleration: i64,
 }
+
 impl Car {
     fn is_less(&self, other: &Self) -> bool {
         if self.year == other.year {
@@ -200,13 +226,52 @@ fn parse_from_file(path: &str) -> Vec<Car> {
 
 /// Parse JSON content to Car instances
 pub fn parse_json(content: &str) -> String {
-    todo!()
+   let cars = make_cars(&content);
+   serde_json::to_string(&cars).unwrap()
 }
 
 
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn test_parse_json() {
+        let content = r#"
+        [
+            {
+                "Name":"Wagon",
+                "Miles_per_Gallon":18,
+                "Cylinders":8,
+                "Displacement":"307",
+                "Horsepower":130,
+                "Weight_in_lbs":3504,
+                "Acceleration":"-]2-",
+                "Year":"1970-01-01",
+                "Origin":"USA"
+            },
+            {
+                "Name":"amc rebel sst",
+                "Miles_per_Gallon":16,
+                "Cylinders":8,
+                "Displacement":"304",
+                "Horsepower":150,
+                "Weight_in_lbs":3433,
+                "Acceleration":12,
+                "Origin":"USA"
+            }
+        ]"#;
+        let serialized_data = parse_json(&content);
+        assert_eq!(
+            serialized_data, 
+            concat!(
+                r#"[{"name":"amc rebel sst","miles_per_galon":16.0,"displacement":"304","horsepower":150,"#,
+                r#""weight_in_lbs":3433,"cylinders":8,"year":null,"acceleration":12},"#,
+                r#"{"name":"Wagon","miles_per_galon":18.0,"displacement":"307","horsepower":130,"#,
+                r#""weight_in_lbs":3504,"cylinders":8,"year":"1970-01-01","acceleration":2}]"#
+            )
+        )
+    }
 
     #[test]
     fn test_parse_from_file() {
