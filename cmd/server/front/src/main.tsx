@@ -50,8 +50,13 @@ class App extends Component<{}, { value: string, result: number, parsed: string 
     this.setState({result: duration, parsed: parsed});
     event.preventDefault();
   }
-  handleTimeItRust() {
-    wasmRust.greets();
+  handleTimeItRust(event: any) {
+    const start = performance.now();
+    const parsed: string = wasmRust.rust_parse_json(this.state.value);
+    const end = performance.now();
+    const duration = end - start;
+    this.setState({result: duration, parsed: parsed});
+    event.preventDefault();
   }
 
   render(){
