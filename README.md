@@ -63,4 +63,5 @@ Now run the server:
 
 ### Screenshot
 
-![image](https://user-images.githubusercontent.com/40120335/152691314-9325925c-e6b3-4f11-ba39-002c9150571b.png)
+<img width="1011" alt="image" src="https://user-images.githubusercontent.com/40120335/184535465-d7796ad4-2544-43dc-b196-667f37201041.png">
+
