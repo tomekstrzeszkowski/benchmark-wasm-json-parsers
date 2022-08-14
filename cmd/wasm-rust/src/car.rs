@@ -145,6 +145,9 @@ pub struct Car {
     #[serde(deserialize_with = "deserialize::acceleration_deserialize")]
     #[serde(rename(deserialize = "Acceleration"))]
     pub acceleration: i64,
+    #[serde(default)]
+    #[serde(rename(deserialize = "Origin"))]
+    pub origin: String,
 }
 
 impl Car {
@@ -255,9 +258,9 @@ mod tests {
             serialized_data, 
             concat!(
                 r#"[{"name":"amc rebel sst","miles_per_galon":16.0,"displacement":"304","horsepower":150,"#,
-                r#""weight_in_lbs":3433,"cylinders":8,"year":null,"acceleration":12},"#,
+                r#""weight_in_lbs":3433,"cylinders":8,"year":null,"acceleration":12,"origin":"USA"},"#,
                 r#"{"name":"Wagon","miles_per_galon":18.0,"displacement":"307","horsepower":130,"#,
-                r#""weight_in_lbs":3504,"cylinders":8,"year":"1970-01-01","acceleration":2}]"#
+                r#""weight_in_lbs":3504,"cylinders":8,"year":"1970-01-01","acceleration":2,"origin":"USA"}]"#
             )
         )
     }
@@ -333,6 +336,7 @@ mod tests {
             cylinders: 4,
             year: Some(Utc.ymd(1970, 1, 1)),
             acceleration: 100,
+            origin: String::from(""),
         };
         assert_eq!(car.cylinders, 4);
     }
@@ -347,6 +351,7 @@ mod tests {
             cylinders: 4,
             year: Some(Utc.ymd(1990, 1, 1)),
             acceleration: 100,
+            origin: String::from(""),
         };
         let car2 = Car{
             name: String::from("Acura"),
@@ -357,6 +362,7 @@ mod tests {
             cylinders: 4,
             year: Some(Utc.ymd(1970, 1, 1)),
             acceleration: 100,
+            origin: String::from(""),
         };
         let car3 = Car{
             name: String::from("VW"),
@@ -367,6 +373,7 @@ mod tests {
             cylinders: 4,
             year: Some(Utc.ymd(1970, 1, 1)),
             acceleration: 100,
+            origin: String::from(""),
         };        
         let car4 = Car{
             name: String::from("Bentley"),
@@ -377,6 +384,7 @@ mod tests {
             cylinders: 4,
             year: Some(Utc.ymd(1970, 1, 1)),
             acceleration: 100,
+            origin: String::from(""),
         };
         let mut cars = vec![car1, car2, car3, car4];
         sort_content(&mut cars);
