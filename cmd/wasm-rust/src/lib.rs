@@ -1,6 +1,5 @@
 mod utils;
 mod car;
-use serde_json::de::StrRead;
 use wasm_bindgen::prelude::*;
 use chrono::{Utc, TimeZone};
 

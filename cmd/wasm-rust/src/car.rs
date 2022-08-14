@@ -1,14 +1,12 @@
 use std::io::Error;
-use serde_json::Value;
 use std::fs::read_to_string;
-use chrono::{Date, Utc, TimeZone, NaiveDate};
+use chrono::{Date, Utc, TimeZone};
 use std::cmp::Ordering;
-use serde::{Deserialize, Deserializer, de};
-use regex::Regex;
+use serde::{Deserialize};
 
 mod deserialize {
     use serde_json::Value;
-    use chrono::{Date, Utc, TimeZone, NaiveDate};
+    use chrono::{Date, Utc, NaiveDate};
     use serde::{Deserialize, Deserializer};
     use regex::Regex;
 
@@ -179,9 +177,9 @@ fn sort_content(cars: &mut Vec<Car>) {
 
 /// Filter invalid data
 fn filter_invalid_cars(cars: &mut Vec<Car>) {
-    // cars.retain(|car| {
-    //     !car.name.is_empty()
-    // });
+    cars.retain(|car| {
+        !car.name.is_empty()
+    });
 }
 
 /// Create struct, format fields' values, parse them into specific
