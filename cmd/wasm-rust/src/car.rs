@@ -15,7 +15,7 @@ mod deserialize {
         D: Deserializer<'de>,
     {
         let date_str: String = Deserialize::deserialize(deserializer)?;
-        let date = NaiveDate::parse_from_str(&date_str[..], "%Y-%m-%d").unwrap();
+        let date = NaiveDate::parse_from_str(&date_str, "%Y-%m-%d").unwrap();
         return Ok(Some(Date::<Utc>::from_utc(date, Utc)));
     }
 
@@ -68,7 +68,7 @@ mod deserialize {
             },
         };
         let re = Regex::new(r"[^\d]").unwrap();
-        let safe_str = re.replace_all(&acc_str[..], "");
+        let safe_str = re.replace_all(&acc_str, "");
         let parsed = safe_str.parse::<i64>().unwrap();
         return Ok(parsed);
     }
